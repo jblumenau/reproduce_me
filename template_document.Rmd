@@ -1,8 +1,15 @@
 ---
 title: "Writing a Paper in Rmarkdown"
-author: "Jack Blumenau"
+author: 
+- name: "Jack Blumenau"
+  affiliation: "University College London"
 date: "02/05/2020"
-output: pdf_document
+output: 
+  pdf_document:
+    citation_package: natbib
+    latex_engine: pdflatex
+    template: header.tex
+    keep_tex: true
 abstract: "Everyone agrees that the issue in this paper is really important. But we do not know much about this specific question, although it matters a great deal, for these reasons. We approach the problem from this perspective. Our research design focuses on these cases and relies on these data, which we analyse using this method. Results show what we have learned about the questions. They have these broader implications."
 bibliography: bibliography.bib
 fontsize: 11pt
@@ -14,9 +21,6 @@ knitr::opts_chunk$set(echo = FALSE) # By default, do not show R code
 
 # Load libraries required for analysis
 library(stargazer) # v5.2.2
-
-# Load data required for analysis
-covid_data <- read.csv("data/covid_survey.csv")
 
 ```
 
@@ -50,13 +54,13 @@ Sometimes you might not want to include a big equation like this, but instead ju
 
 ![A very serious graph \label{silly_graph}](silly_graph.jpg)
 
-# Data and methods
+# Data and analysis
 
 ## Data
 
 Of course, while good papers might use math, the best papers use *data*. You can load the data that I provided by writing the following in R:
 
-```{r echo=TRUE, eval = FALSE}
+```{r echo=TRUE}
 
 ## Load data
 covid_data <- read.csv("data/covid_survey.csv")
@@ -64,7 +68,7 @@ covid_data <- read.csv("data/covid_survey.csv")
 ```
 
 
-This data includes responses from from a survey of `r nrow(covid_data)` individuals which was fielded in March 2020. We will focus on information on `r ncol(covid_data)` questions posed to those individuals. Our primary interested is in the responses provided to the following questions:
+This data includes responses from from a survey of `r nrow(covid_data)` individuals which was fielded in March 2020. We will focus on information on `r ncol(covid_data)` questions posed to those individuals. Our primary interest is in the responses provided to the following questions:
 
 1. `incomeChangeHH`
 
@@ -74,29 +78,63 @@ This data includes responses from from a survey of `r nrow(covid_data)` individu
 
     - Do you approve or disapprove of the job that the UK government is doing?
 
-We will use this data to see how Rmarkdown can 1) make it easier to change your paper as you make changes to your analysis; and 2) make it easier to replicate your analysis.
+## Analysis
 
-## Methods
+Given this data, we might want to conduct some cutting-edge analysis which will produce some awesome findings. For instance, you might want to create plots like this:
 
-In this section you should include the R code that you wrote at home in a code chunk in this document.
+\vspace{.5cm}
 
-For instance, you might want to create a plot like this:
+```{r, fig.width=10, fig.height=5, echo = FALSE}
 
-```{r}
-
-hist(covid_data$age)
+par(mfrow = c(1,2), oma = c(2,0,0,0))
+hist(covid_data$age, xlab = "Age", main = "Age")
+barplot(table(covid_data$profile_GOR), las = 2, main = "Region")
 
 ```
 
-Or a table, using the `stargazer` package, like this:
+Note that by including `echo = TRUE` in the chunk options, you can see the code that I used to produce such beautiful graphs
 
-```{r, results='asis'}
+Or you could run a regression and present the results in a table by using the `stargazer` package (let's hide the relevant code in the document this time by setting `echo = FALSE`):
+
+```{r, results='asis', echo = FALSE}
 
 silly_model <- lm(age ~ profile_gender,covid_data)
 
 stargazer(silly_model,
+          keep.stat = c("rsq", "n"),
           header = FALSE)
 
 ```
+
+Here, we use `results = 'asis'` in the chunk options to ensure that the table is rendered properly in the PDF. 
+
+If we care about reporting some quantity of interest from this model in the text, then that is trivial to do using in-line code chunks. For instance, the coefficient on the gender variable is equal to `r coef(silly_model)[2]`.
+
+# Your work goes here!
+
+In this section you should include some R code that conducts some additional analyses of the `covid_data`. You might, for instance, do the following: 
+
+1. Create a histogram of incomeChangeHH
+2. Create a histogram of approveUKGovt
+3. Recode incomeChangeHH to be a binary variable, where 1 is whether an individual's household has lost income as a result of COVID-19 and else the variable is 0
+4. Recode approveUKGovt to be a numeric variable
+5. Implement one regression predicting approveUKGovt as a function of the binary income variable you have used
+6. Implement one regression predicting approveUKGovt as a function of the binary income variable you have used + demographics
+7. Write a one paragraph summary of your results which includes describing a) the sample size used in the regressions; b) the size of the coefficient on approveUKGovt in the two models; and c) the r-squared of the two models.
+
+In your document you should make sure that:
+
+1. We cannot see the code you use to do your recoding and analysis
+2. We can see both the graphs and tables you produce
+3. Any quantities that you report in the paragraph of text you write should be included as in-line code chunks.
+
+
+# Helpful resources
+
+1. [Rmarkdown cheat sheet](https://rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf)
+2. [Bibdesk](https://bibdesk.sourceforge.io)
+3. [Github and Rstudio](https://resources.github.com/whitepapers/github-and-rstudio/)
+4. [Writing reproducible research papers with R Markdown](https://resulumit.com/blog/rmd-workshop/)
+
 
 # References
